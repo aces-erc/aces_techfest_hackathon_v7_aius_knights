@@ -1,3 +1,5 @@
+import React from "react";
+
 import { Link, useLocation } from "react-router-dom";
 import { Home as HomeIcon, User, PlusSquare } from "lucide-react";
 
