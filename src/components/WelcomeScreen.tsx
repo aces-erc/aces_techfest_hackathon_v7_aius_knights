@@ -10,8 +10,8 @@ const WelcomeScreen: React.FC = () => (
     <h2 className="text-2xl font-semibold mb-2">Features:</h2>
     <ul className="list-disc list-inside mb-4">
       <li>User authentication with Google Sign-In</li>
-      <li>Create posts with images and captions</li>
-      <li>View a public feed of all posts</li>
+      <li>Share your struggle with mental health</li>
+      <li>View a feed of all posts</li>
       <li>Personal profile page</li>
     </ul>
     <SignIn />
