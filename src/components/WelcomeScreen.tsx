@@ -1,5 +1,8 @@
 import React from "react";
 import SignIn from "./SignIn";
+import "../App.css";
+
+
 const WelcomeScreen: React.FC = () => (
   <div className="welcome-screen p-8 max-w-2xl mx-auto">
     <h1 className="text-4xl font-bold mb-4">Welcome to KindSpace</h1>

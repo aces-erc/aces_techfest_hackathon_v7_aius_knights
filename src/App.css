@@ -1,2 +1,12 @@
 main {
+  background-color: #9191f7;
+  margin-bottom: 5%;
+}
+.fix-nav{
+  position: fixed;
+  bottom:0px;
+  width:100vw;
+}
+.post-button:hover{
+  background-color:#436fd6;
 }
