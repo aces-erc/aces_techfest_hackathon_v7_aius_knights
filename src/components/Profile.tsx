@@ -1,5 +1,113 @@
-import React from "react";
-import { useState, useEffect } from "react";
+// import React from "react";
+// import { useState, useEffect } from "react";
+// import { User } from "firebase/auth";
+// import {
+//   collection,
+//   query,
+//   where,
+//   orderBy,
+//   onSnapshot,
+// } from "firebase/firestore";
+// import { signOut } from "firebase/auth";
+// import { auth, db } from "../firebase";
+// import { Link, useNavigate } from "react-router-dom";
+
+// interface Post {
+//   id: string;
+//   text: string;
+//   imageUrl: string;
+// }
+
+// const Profile: React.FC = () => {
+//   const [posts, setPosts] = useState<Post[]>([]);
+//   const [user, setUser] = useState<User | null>(null);
+//   const navigate = useNavigate();
+
+//   useEffect(() => {
+//     const unsubscribeAuth = auth.onAuthStateChanged((currentUser) => {
+//       setUser(currentUser);
+//       if (currentUser) {
+//         const postsQuery = query(
+//           collection(db, "posts"),
+//           where("userId", "==", currentUser.uid),
+//           orderBy("createdAt", "desc"),
+//         );
+
+//         const unsubscribePosts = onSnapshot(postsQuery, (snapshot) => {
+//           const newPosts = snapshot.docs.map((doc) => ({
+//             id: doc.id,
+//             ...doc.data(),
+//           })) as Post[];
+//           setPosts(newPosts);
+//         });
+
+//         return () => unsubscribePosts();
+//       } else {
+//         setPosts([]);
+//       }
+//     });
+
+//     return () => unsubscribeAuth();
+//   }, []);
+
+//   const handleSignOut = async () => {
+//     try {
+//       await signOut(auth);
+//       navigate("/");
+//     } catch (error) {
+//       console.error("Error signing out:", error);
+//     }
+//   };
+
+//   if (!user) {
+//     return (
+//       <div className="profile p-4">
+//         <h2 className="text-2xl font-bold mb-4 text-center">Profile</h2>
+//         <p>Please sign in to view your profile.</p>
+//         <Link
+//           to="/signin"
+//           className="bg-blue-500 text-white px-4 py-2 rounded mt-4 inline-block"
+//         >
+//           Sign In
+//         </Link>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="profile p-4">
+//       <h2 className="text-2xl font-bold mb-4 text-center">Your Profile</h2>
+//       <div className="mx-auto max-w-2xl">
+//         <button
+//           onClick={handleSignOut}
+//           className="bg-red-500 text-white px-4 py-2 rounded mb-4"
+//         >
+//           Sign Out
+//         </button>
+//         <h3 className="text-xl font-semibold mb-2">Your Posts</h3>
+//         {posts.map((post) => (
+//           <div
+//             key={post.id}
+//             className="post bg-white shadow-md rounded-lg p-4 mb-4"
+//           >
+//             {post.imageUrl && (
+//               <img
+//                 src={post.imageUrl}
+//                 alt="Post"
+//                 className="w-full h-64 object-cover rounded-lg mb-2"
+//               />
+//             )}
+//             <p className="text-gray-800">{post.text}</p>
+//           </div>
+//         ))}
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default Profile;
+
+import React, { useState, useEffect } from "react";
 import { User } from "firebase/auth";
 import {
   collection,
@@ -7,6 +115,8 @@ import {
   where,
   orderBy,
   onSnapshot,
+  deleteDoc,
+  doc,
 } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../firebase";
@@ -15,7 +125,7 @@ import { Link, useNavigate } from "react-router-dom";
 interface Post {
   id: string;
   text: string;
-  imageUrl: string;
+  imageUrl?: string;
 }
 
 const Profile: React.FC = () => {
@@ -32,7 +142,6 @@ const Profile: React.FC = () => {
           where("userId", "==", currentUser.uid),
           orderBy("createdAt", "desc"),
         );
-
         const unsubscribePosts = onSnapshot(postsQuery, (snapshot) => {
           const newPosts = snapshot.docs.map((doc) => ({
             id: doc.id,
@@ -40,13 +149,11 @@ const Profile: React.FC = () => {
           })) as Post[];
           setPosts(newPosts);
         });
-
         return () => unsubscribePosts();
       } else {
         setPosts([]);
       }
     });
-
     return () => unsubscribeAuth();
   }, []);
 
@@ -59,48 +166,49 @@ const Profile: React.FC = () => {
     }
   };
 
+  const handleDelete = async (postId: string) => {
+    try {
+      await deleteDoc(doc(db, "posts", postId));
+      setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
+    } catch (error) {
+      console.error("Error deleting post:", error);
+    }
+  };
+
   if (!user) {
     return (
-      <div className="profile p-4">
+      <div>
         <h2 className="text-2xl font-bold mb-4 text-center">Profile</h2>
         <p>Please sign in to view your profile.</p>
-        <Link
-          to="/signin"
-          className="bg-blue-500 text-white px-4 py-2 rounded mt-4 inline-block"
-        >
-          Sign In
-        </Link>
+        <Link to="/signin">Sign In</Link>
       </div>
     );
   }
 
   return (
-    <div className="profile p-4">
+    <div>
       <h2 className="text-2xl font-bold mb-4 text-center">Your Profile</h2>
-      <div className="mx-auto max-w-2xl">
-        <button
-          onClick={handleSignOut}
-          className="bg-red-500 text-white px-4 py-2 rounded mb-4"
-        >
-          Sign Out
-        </button>
-        <h3 className="text-xl font-semibold mb-2">Your Posts</h3>
+      <button
+        onClick={handleSignOut}
+        className="bg-red-500 text-white px-4 py-2 rounded mb-4"
+      >
+        Sign Out
+      </button>
+      <h2 className="text-xl font-semibold mb-2">Your Posts</h2>
+      <ul>
         {posts.map((post) => (
-          <div
-            key={post.id}
-            className="post bg-white shadow-md rounded-lg p-4 mb-4"
-          >
-            {post.imageUrl && (
-              <img
-                src={post.imageUrl}
-                alt="Post"
-                className="w-full h-64 object-cover rounded-lg mb-2"
-              />
-            )}
-            <p className="text-gray-800">{post.text}</p>
-          </div>
+          <li key={post.id} className="mb-4">
+            {post.imageUrl}
+            <p className="text-black-800">{post.text}</p>
+            <button
+              onClick={() => handleDelete(post.id)}
+              className="text-red-500"
+            >
+              Delete Post
+            </button>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 };
