@@ -91,7 +91,7 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Add a comment..."
+          placeholder="Send a kindword..."
           className="w-full border rounded p-2 mb-2"
           rows={1}
         />
@@ -100,7 +100,7 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
           type="submit"
           className="bg-blue-500 text-white px-4 py-2 rounded post-button"
         >
-          Comment
+          KindWords
         </button>
       </form>
     </div>
