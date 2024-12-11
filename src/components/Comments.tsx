@@ -14,7 +14,7 @@ interface Comment {
   id: string;
   userId: string;
   text: string;
-  createdAt: any; // Firestore timestamp
+  createdAt: any;
 }
 
 interface CommentsProps {
@@ -98,9 +98,9 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
         {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
         <button
           type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded"
+          className="bg-blue-500 text-white px-4 py-2 rounded post-button"
         >
-          Add Comment
+          Comment
         </button>
       </form>
     </div>

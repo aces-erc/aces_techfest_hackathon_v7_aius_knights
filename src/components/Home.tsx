@@ -73,7 +73,7 @@ const Home: React.FC = () => {
   useEffect(() => {
     const postsQuery = query(
       collection(db, "posts"),
-      orderBy("createdAt", "desc")
+      orderBy("createdAt", "desc"),
     );
 
     const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
@@ -89,7 +89,7 @@ const Home: React.FC = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">Home Feed</h1>
+      <h2 className="text-2xl font-bold mb-4 text-center">Home Page</h2>
       <div>
         {posts.map((post) => (
           <div key={post.id} className="mb-6">
