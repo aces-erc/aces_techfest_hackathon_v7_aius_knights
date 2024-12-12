@@ -7,6 +7,8 @@ import {
   orderBy,
   onSnapshot,
   serverTimestamp,
+  deleteDoc,
+  doc,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { db } from "../firebase";
@@ -16,6 +18,7 @@ interface Comment {
   userId: string;
   text: string;
   createdAt: any;
+  replies?: Reply[];
 }
 
 interface Reply extends Comment {}
@@ -49,6 +52,8 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
     [id: string]: boolean;
   }>({});
   const [replyText, setReplyText] = useState<{ [key: string]: string }>({});
+  const auth = getAuth();
+  const currentUser = auth.currentUser;
 
   useEffect(() => {
     const commentsQuery = query(
@@ -140,6 +145,40 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
     }
   };
 
+  const handleDeleteComment = async (commentId: string, userId: string) => {
+    if (!currentUser || currentUser.uid !== userId) {
+      setError("You can only delete your own comments");
+      return;
+    }
+
+    try {
+      await deleteDoc(doc(db, "posts", postId, "comments", commentId));
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      setError("Failed to delete comment. Please try again.");
+    }
+  };
+
+  const handleDeleteReply = async (
+    commentId: string,
+    replyId: string,
+    userId: string,
+  ) => {
+    if (!currentUser || currentUser.uid !== userId) {
+      setError("You can only delete your own replies");
+      return;
+    }
+
+    try {
+      await deleteDoc(
+        doc(db, "posts", postId, "comments", commentId, "replies", replyId),
+      );
+    } catch (error) {
+      console.error("Error deleting reply:", error);
+      setError("Failed to delete reply. Please try again.");
+    }
+  };
+
   const fetchReplies = async (commentId: string) => {
     const repliesQuery = query(
       collection(db, "posts", postId, "comments", commentId, "replies"),
@@ -180,12 +219,25 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
           const words = comment.text.split(" ");
           const shouldTruncate = words.length > 30;
           const anonymousUser = generateAnonymousId(comment.userId);
+          const isCommentOwner = currentUser?.uid === comment.userId;
 
           return (
             <li key={comment.id} className="border-b pb-2 mb-2">
-              <p className="text-gray-500 text-sm mb-1">
-                {anonymousUser} says:
-              </p>
+              <div className="flex justify-between items-start">
+                <p className="text-gray-500 text-sm mb-1">
+                  {anonymousUser} says:
+                </p>
+                {isCommentOwner && (
+                  <button
+                    onClick={() =>
+                      handleDeleteComment(comment.id, comment.userId)
+                    }
+                    className="text-red-500 hover:text-red-700 text-sm"
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
               <p>
                 {shouldTruncate && !isExpanded
                   ? `${words.slice(0, 30).join(" ")}...`
@@ -210,17 +262,36 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
               </button>
               {repliesVisible[comment.id] && comment.replies && (
                 <div className="ml-4 mt-2">
-                  {comment.replies.map((reply) => (
-                    <div key={reply.id} className="border-l pl-2 mb-2">
-                      <p className="text-gray-500 text-sm">
-                        {generateAnonymousId(reply.userId)} replied:
-                      </p>
-                      <p>{reply.text}</p>
-                      <small className="text-gray-500">
-                        {new Date(reply.createdAt?.toDate()).toLocaleString()}
-                      </small>
-                    </div>
-                  ))}
+                  {comment.replies.map((reply) => {
+                    const isReplyOwner = currentUser?.uid === reply.userId;
+                    return (
+                      <div key={reply.id} className="border-l pl-2 mb-2">
+                        <div className="flex justify-between items-start">
+                          <p className="text-gray-500 text-sm">
+                            {generateAnonymousId(reply.userId)} replied:
+                          </p>
+                          {isReplyOwner && (
+                            <button
+                              onClick={() =>
+                                handleDeleteReply(
+                                  comment.id,
+                                  reply.id,
+                                  reply.userId,
+                                )
+                              }
+                              className="text-red-500 hover:text-red-700 text-sm"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </div>
+                        <p>{reply.text}</p>
+                        <small className="text-gray-500">
+                          {new Date(reply.createdAt?.toDate()).toLocaleString()}
+                        </small>
+                      </div>
+                    );
+                  })}
                   <textarea
                     value={replyText[comment.id] || ""}
                     onChange={(e) =>
