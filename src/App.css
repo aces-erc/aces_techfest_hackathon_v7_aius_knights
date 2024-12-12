@@ -10,3 +10,6 @@ main {
 .post-button:hover{
   background-color:#436fd6;
 }
+.show{
+  color:red;
+}
