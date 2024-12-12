@@ -116,26 +116,20 @@ const Profile: React.FC = () => {
                 key={post.id}
                 className="mb-6 border rounded-lg p-4 bg-gray-50 shadow-sm hover:shadow-md transition"
               >
-                {post.imageUrl && (
-                  <img
-                    src={post.imageUrl}
-                    alt="Post"
-                    className="w-full h-48 object-cover rounded-md mb-4"
-                  />
-                )}
-                <p className="text-gray-800 text-base mb-4">
+                <span className="text-gray-800 text-base mb-4">
                   {shouldTruncate && !isExpanded
                     ? `${post.text.slice(0, 150)}...`
                     : post.text}
-                </p>
+                </span>
                 {shouldTruncate && (
                   <button
                     onClick={() => toggleReadMore(post.id)}
-                    className="text-blue-500 underline text-sm block mb-1"
+                    className="text-blue-500 cursor-pointer ml-1 text-sm font-semibold hover:underline"
                   >
                     {isExpanded ? "Read Less" : "Read More"}
                   </button>
                 )}
+                <br />
                 <button
                   onClick={() => handleDelete(post.id)}
                   className="bg-red-500 text-white px-4 py-2 rounded mt-2 hover:bg-red-600 transition"

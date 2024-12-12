@@ -83,7 +83,7 @@ const Home: React.FC = () => {
           return (
             <div
               key={post.id}
-              className="p-4 border rounded-lg shadow-lg bg-white hover:shadow-xl transition duration-300"
+              className="p-4 border rounded-lg shadow-lg bg-white hover:shadow-xl trineansition duration-300"
             >
               <p className="text-sm text-gray-500 mb-2">
                 Posted by: {anonymousUser}
@@ -95,7 +95,7 @@ const Home: React.FC = () => {
                     {post.text.slice(0, 300)}...
                     <span
                       onClick={() => toggleReadMore(post.id)}
-                      className="text-blue-500 cursor-pointer ml-1 text-sm font-semibold hover:underline"
+                      className="text-blue-500 cursor-pointer ml-1 text-sm font-semibold hover:underl"
                     >
                       Read More
                     </span>
