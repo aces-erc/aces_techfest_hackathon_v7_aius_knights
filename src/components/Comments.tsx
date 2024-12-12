@@ -193,7 +193,7 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
                 {shouldTruncate && (
                   <button
                     onClick={() => toggleReadMore(comment.id)}
-                    className="text-blue-500 underline ml-2"
+                    className="text-blue-500 cursor-pointer ml-1 text-sm font-semibold hover:underline"
                   >
                     {isExpanded ? "Read Less" : "Read More"}
                   </button>
