@@ -179,7 +179,6 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
           const isExpanded = expandedComments[comment.id];
           const words = comment.text.split(" ");
           const shouldTruncate = words.length > 30;
-
           const anonymousUser = generateAnonymousId(comment.userId);
 
           return (
@@ -207,7 +206,7 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
                 onClick={() => toggleRepliesVisibility(comment.id)}
                 className="text-blue-500 underline text-sm mt-1 show"
               >
-                {repliesVisible[comment.id] ? "Hide Replies" : "Show Replies"}
+                {repliesVisible[comment.id] ? "Hide Replies" : "Replies"}
               </button>
               {repliesVisible[comment.id] && comment.replies && (
                 <div className="ml-4 mt-2">

@@ -73,9 +73,7 @@ const Home: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 pb-20">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800 text-center">
-        Explore
-      </h2>
+      <h2 className="text-2xl font-bold mb-6 mt-6 text-gray-800">Explore</h2>
       <div className="space-y-6">
         {posts.map((post) => {
           const isExpanded = expandedPosts[post.id];
