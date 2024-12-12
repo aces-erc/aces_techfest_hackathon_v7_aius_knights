@@ -12,6 +12,7 @@ import {
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { db } from "../firebase";
+import { analyzeCommentToxicity } from "../perspective";
 
 interface Comment {
   id: string;
@@ -48,10 +49,12 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
   const [repliesVisible, setRepliesVisible] = useState<{
     [key: string]: boolean;
   }>({});
+
   const [expandedComments, setExpandedComments] = useState<{
     [id: string]: boolean;
   }>({});
   const [replyText, setReplyText] = useState<{ [key: string]: string }>({});
+
   const auth = getAuth();
   const currentUser = auth.currentUser;
 
@@ -105,6 +108,13 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
     }
 
     try {
+      const toxicityAnalysis = await analyzeCommentToxicity(trimmedText);
+
+      if (toxicityAnalysis.toxicityScore > 0.8) {
+        setError("Your Kindword seems inappropriate. Please revise it.");
+        return;
+      }
+
       await addDoc(collection(db, "posts", postId, "comments"), {
         userId: user.uid,
         text: trimmedText,
@@ -130,6 +140,12 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
     }
 
     try {
+      const toxicityAnalysis = await analyzeCommentToxicity(trimmedText);
+
+      if (toxicityAnalysis.toxicityScore > 0.8) {
+        setError("Your reply seems inappropriate. Please revise it.");
+        return;
+      }
       await addDoc(
         collection(db, "posts", postId, "comments", commentId, "replies"),
         {
