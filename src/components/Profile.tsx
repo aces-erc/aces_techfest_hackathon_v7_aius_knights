@@ -92,8 +92,8 @@ const Profile: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-6">
+    <div className="min-h-screen bg-blue-101 p-6">
+      <div className="max-w-3xl mx-auto rounded-lg p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Your Profile</h2>
           <button
@@ -123,7 +123,7 @@ const Profile: React.FC = () => {
                 )}
                 <p className="text-gray-800 text-base mb-4">
                   {shouldTruncate && !isExpanded
-                    ? `${post.text.slice(0, 300)}...`
+                    ? `${post.text.slice(0, 150)}...`
                     : post.text}
                 </p>
                 {shouldTruncate && (
