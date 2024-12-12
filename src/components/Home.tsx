@@ -121,7 +121,7 @@ const Home: React.FC = () => {
                 onClick={() => toggleCommentsVisibility(post.id)}
                 className="text-blue-500 underline text-sm"
               >
-                {visibleComments[post.id] ? "Hide KindWords" : "Show KindWords"}
+                {visibleComments[post.id] ? "Hide KindWords" : "KindWords"}
               </button>
               {visibleComments[post.id] && <Comments postId={post.id} />}
             </div>

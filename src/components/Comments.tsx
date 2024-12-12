@@ -23,7 +23,20 @@ interface Reply extends Comment {}
 interface CommentsProps {
   postId: string;
 }
-/** KindWords are KindSpace's version of comments.Treat them as same. */
+
+const generateAnonymousId = (userId: string) => {
+  const hashCode = (str: string) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash = hash & hash;
+    }
+    return Math.abs(hash);
+  };
+
+  return `Anonymous ${hashCode(userId) % 10000}`;
+};
 
 const Comments: React.FC<CommentsProps> = ({ postId }) => {
   const [comments, setComments] = useState<Comment[]>([]);
@@ -35,6 +48,7 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
   const [expandedComments, setExpandedComments] = useState<{
     [id: string]: boolean;
   }>({});
+  const [replyText, setReplyText] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     const commentsQuery = query(
@@ -98,7 +112,10 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
     }
   };
 
-  const handleAddReply = async (commentId: string, replyText: string) => {
+  const handleAddReply = async (commentId: string) => {
+    const trimmedText = replyText[commentId]?.trim();
+    if (!trimmedText) return;
+
     const auth = getAuth();
     const user = auth.currentUser;
 
@@ -112,15 +129,47 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
         collection(db, "posts", postId, "comments", commentId, "replies"),
         {
           userId: user.uid,
-          text: replyText,
+          text: trimmedText,
           createdAt: serverTimestamp(),
         },
       );
+      setReplyText((prev) => ({ ...prev, [commentId]: "" }));
     } catch (error) {
       console.error("Error adding reply:", error);
       alert("Failed to add reply. Please try again.");
     }
   };
+
+  const fetchReplies = async (commentId: string) => {
+    const repliesQuery = query(
+      collection(db, "posts", postId, "comments", commentId, "replies"),
+      orderBy("createdAt", "asc"),
+    );
+
+    const unsubscribe = onSnapshot(repliesQuery, (snapshot) => {
+      const newReplies = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Reply[];
+      setComments((prevComments) =>
+        prevComments.map((comment) =>
+          comment.id === commentId
+            ? { ...comment, replies: newReplies }
+            : comment,
+        ),
+      );
+    });
+
+    return unsubscribe;
+  };
+
+  useEffect(() => {
+    comments.forEach((comment) => {
+      if (repliesVisible[comment.id]) {
+        fetchReplies(comment.id);
+      }
+    });
+  }, [repliesVisible, comments]);
 
   return (
     <div className="mt-4 to-right">
@@ -131,8 +180,13 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
           const words = comment.text.split(" ");
           const shouldTruncate = words.length > 30;
 
+          const anonymousUser = generateAnonymousId(comment.userId);
+
           return (
             <li key={comment.id} className="border-b pb-2 mb-2">
+              <p className="text-gray-500 text-sm mb-1">
+                {anonymousUser} says:
+              </p>
               <p>
                 {shouldTruncate && !isExpanded
                   ? `${words.slice(0, 30).join(" ")}...`
@@ -155,12 +209,38 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
               >
                 {repliesVisible[comment.id] ? "Hide Replies" : "Show Replies"}
               </button>
-              {repliesVisible[comment.id] && (
-                <Replies
-                  postId={postId}
-                  commentId={comment.id}
-                  onReply={(replyText) => handleAddReply(comment.id, replyText)}
-                />
+              {repliesVisible[comment.id] && comment.replies && (
+                <div className="ml-4 mt-2">
+                  {comment.replies.map((reply) => (
+                    <div key={reply.id} className="border-l pl-2 mb-2">
+                      <p className="text-gray-500 text-sm">
+                        {generateAnonymousId(reply.userId)} replied:
+                      </p>
+                      <p>{reply.text}</p>
+                      <small className="text-gray-500">
+                        {new Date(reply.createdAt?.toDate()).toLocaleString()}
+                      </small>
+                    </div>
+                  ))}
+                  <textarea
+                    value={replyText[comment.id] || ""}
+                    onChange={(e) =>
+                      setReplyText((prev) => ({
+                        ...prev,
+                        [comment.id]: e.target.value,
+                      }))
+                    }
+                    placeholder="Reply to this kindword..."
+                    className="w-full border rounded p-2 mb-2"
+                    rows={1}
+                  />
+                  <button
+                    onClick={() => handleAddReply(comment.id)}
+                    className="bg-blue-800 text-white px-3 py-1 rounded text-sm post-button"
+                  >
+                    Reply
+                  </button>
+                </div>
               )}
             </li>
           );
@@ -180,96 +260,6 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
           className="bg-blue-500 text-white px-4 py-2 rounded post-button"
         >
           Add Kindword
-        </button>
-      </form>
-    </div>
-  );
-};
-
-const Replies: React.FC<{
-  postId: string;
-  commentId: string;
-  onReply: (replyText: string) => void;
-}> = ({ postId, commentId, onReply }) => {
-  const [replies, setReplies] = useState<Reply[]>([]);
-  const [replyText, setReplyText] = useState("");
-  const [expandedReplies, setExpandedReplies] = useState<{
-    [id: string]: boolean;
-  }>({});
-
-  useEffect(() => {
-    const repliesQuery = query(
-      collection(db, "posts", postId, "comments", commentId, "replies"),
-      orderBy("createdAt", "asc"),
-    );
-
-    const unsubscribe = onSnapshot(repliesQuery, (snapshot) => {
-      const newReplies = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Reply[];
-      setReplies(newReplies);
-    });
-
-    return () => unsubscribe();
-  }, [postId, commentId]);
-
-  const handleAddReply = (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmedText = replyText.trim();
-    if (!trimmedText) return;
-    onReply(trimmedText);
-    setReplyText("");
-  };
-
-  const toggleReadMore = (replyId: string) => {
-    setExpandedReplies((prevState) => ({
-      ...prevState,
-      [replyId]: !prevState[replyId],
-    }));
-  };
-
-  return (
-    <div className="ml-4 mt-2">
-      {replies.map((reply) => {
-        const isExpanded = expandedReplies[reply.id];
-        const words = reply.text.split(" ");
-        const shouldTruncate = words.length > 30;
-
-        return (
-          <div key={reply.id} className="border-l pl-2 mb-2">
-            <p>
-              {shouldTruncate && !isExpanded
-                ? `${words.slice(0, 30).join(" ")}...`
-                : reply.text}
-              {shouldTruncate && (
-                <button
-                  onClick={() => toggleReadMore(reply.id)}
-                  className="text-blue-500 underline ml-2"
-                >
-                  {isExpanded ? "Read Less" : "Read More"}
-                </button>
-              )}
-            </p>
-            <small className="text-gray-500">
-              {new Date(reply.createdAt?.toDate()).toLocaleString()}
-            </small>
-          </div>
-        );
-      })}
-      <form onSubmit={handleAddReply}>
-        <textarea
-          value={replyText}
-          onChange={(e) => setReplyText(e.target.value)}
-          placeholder="Reply to this kindword..."
-          className="w-full border rounded p-2 mb-2"
-          rows={1}
-        />
-        <button
-          type="submit"
-          className="bg-blue-400 text-white px-3 py-1 rounded text-sm post-button"
-        >
-          Reply
         </button>
       </form>
     </div>
