@@ -15,7 +15,6 @@ const AddPost: React.FC = () => {
     e.preventDefault();
     setError("");
 
-    // Validate post length
     const trimmedText = text.trim();
     if (!trimmedText) {
       setError("Post cannot be empty");

@@ -23,6 +23,7 @@ interface Reply extends Comment {}
 interface CommentsProps {
   postId: string;
 }
+/** KindWords are KindSpace's version of comments.Treat them as same. */
 
 const Comments: React.FC<CommentsProps> = ({ postId }) => {
   const [comments, setComments] = useState<Comment[]>([]);
@@ -30,6 +31,9 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
   const [error, setError] = useState("");
   const [repliesVisible, setRepliesVisible] = useState<{
     [key: string]: boolean;
+  }>({});
+  const [expandedComments, setExpandedComments] = useState<{
+    [id: string]: boolean;
   }>({});
 
   useEffect(() => {
@@ -51,6 +55,13 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
 
   const toggleRepliesVisibility = (commentId: string) => {
     setRepliesVisible((prevState) => ({
+      ...prevState,
+      [commentId]: !prevState[commentId],
+    }));
+  };
+
+  const toggleReadMore = (commentId: string) => {
+    setExpandedComments((prevState) => ({
       ...prevState,
       [commentId]: !prevState[commentId],
     }));
@@ -115,27 +126,45 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
     <div className="mt-4 to-right">
       <h3 className="font-bold text-lg mb-2">Kindwords</h3>
       <ul className="mb-4">
-        {comments.map((comment) => (
-          <li key={comment.id} className="border-b pb-2 mb-2">
-            <p>{comment.text}</p>
-            <small className="text-gray-500">
-              {new Date(comment.createdAt?.toDate()).toLocaleString()}
-            </small>
-            <button
-              onClick={() => toggleRepliesVisibility(comment.id)}
-              className="text-blue-500 underline text-sm mt-1 show"
-            >
-              {repliesVisible[comment.id] ? "Hide Replies" : "Show Replies"}
-            </button>
-            {repliesVisible[comment.id] && (
-              <Replies
-                postId={postId}
-                commentId={comment.id}
-                onReply={(replyText) => handleAddReply(comment.id, replyText)}
-              />
-            )}
-          </li>
-        ))}
+        {comments.map((comment) => {
+          const isExpanded = expandedComments[comment.id];
+          const words = comment.text.split(" ");
+          const shouldTruncate = words.length > 30;
+
+          return (
+            <li key={comment.id} className="border-b pb-2 mb-2">
+              <p>
+                {shouldTruncate && !isExpanded
+                  ? `${words.slice(0, 30).join(" ")}...`
+                  : comment.text}
+                {shouldTruncate && (
+                  <button
+                    onClick={() => toggleReadMore(comment.id)}
+                    className="text-blue-500 underline ml-2"
+                  >
+                    {isExpanded ? "Read Less" : "Read More"}
+                  </button>
+                )}
+              </p>
+              <small className="text-gray-500">
+                {new Date(comment.createdAt?.toDate()).toLocaleString()}
+              </small>
+              <button
+                onClick={() => toggleRepliesVisibility(comment.id)}
+                className="text-blue-500 underline text-sm mt-1 show"
+              >
+                {repliesVisible[comment.id] ? "Hide Replies" : "Show Replies"}
+              </button>
+              {repliesVisible[comment.id] && (
+                <Replies
+                  postId={postId}
+                  commentId={comment.id}
+                  onReply={(replyText) => handleAddReply(comment.id, replyText)}
+                />
+              )}
+            </li>
+          );
+        })}
       </ul>
       <form onSubmit={handleAddComment} className="mt-2">
         <textarea
@@ -164,6 +193,9 @@ const Replies: React.FC<{
 }> = ({ postId, commentId, onReply }) => {
   const [replies, setReplies] = useState<Reply[]>([]);
   const [replyText, setReplyText] = useState("");
+  const [expandedReplies, setExpandedReplies] = useState<{
+    [id: string]: boolean;
+  }>({});
 
   useEffect(() => {
     const repliesQuery = query(
@@ -190,16 +222,41 @@ const Replies: React.FC<{
     setReplyText("");
   };
 
+  const toggleReadMore = (replyId: string) => {
+    setExpandedReplies((prevState) => ({
+      ...prevState,
+      [replyId]: !prevState[replyId],
+    }));
+  };
+
   return (
     <div className="ml-4 mt-2">
-      {replies.map((reply) => (
-        <div key={reply.id} className="border-l pl-2 mb-2">
-          <p>{reply.text}</p>
-          <small className="text-gray-500">
-            {new Date(reply.createdAt?.toDate()).toLocaleString()}
-          </small>
-        </div>
-      ))}
+      {replies.map((reply) => {
+        const isExpanded = expandedReplies[reply.id];
+        const words = reply.text.split(" ");
+        const shouldTruncate = words.length > 30;
+
+        return (
+          <div key={reply.id} className="border-l pl-2 mb-2">
+            <p>
+              {shouldTruncate && !isExpanded
+                ? `${words.slice(0, 30).join(" ")}...`
+                : reply.text}
+              {shouldTruncate && (
+                <button
+                  onClick={() => toggleReadMore(reply.id)}
+                  className="text-blue-500 underline ml-2"
+                >
+                  {isExpanded ? "Read Less" : "Read More"}
+                </button>
+              )}
+            </p>
+            <small className="text-gray-500">
+              {new Date(reply.createdAt?.toDate()).toLocaleString()}
+            </small>
+          </div>
+        );
+      })}
       <form onSubmit={handleAddReply}>
         <textarea
           value={replyText}
