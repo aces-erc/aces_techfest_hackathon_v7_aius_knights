@@ -3,6 +3,21 @@ import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
 import Comments from "./Comments";
 
+// Generating a unique anonymous ID based on the userID
+const generateAnonymousId = (userId: string) => {
+  const hashCode = (str: string) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    return Math.abs(hash);
+  };
+
+  return `Anonymous ${hashCode(userId) % 10000}`;
+};
+
 interface Post {
   id: string;
   text: string;
@@ -57,43 +72,54 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-4 text-center">Home Feed</h2>
-      <div className="to-right">
+    <div className="container mx-auto px-4 pb-20">
+      <h2 className="text-2xl font-bold mb-6 text-gray-800 text-center">
+        Explore
+      </h2>
+      <div className="space-y-6">
         {posts.map((post) => {
           const isExpanded = expandedPosts[post.id];
           const shouldTruncate = post.text.length > 300;
+          const anonymousUser = generateAnonymousId(post.userId);
 
           return (
-            <div key={post.id} className="mb-6 pb-4 border-b border-black">
-              <p className="mb-2">
+            <div
+              key={post.id}
+              className="p-4 border rounded-lg shadow-lg bg-white hover:shadow-xl transition duration-300"
+            >
+              <p className="text-sm text-gray-500 mb-2">
+                Posted by: {anonymousUser}
+              </p>
+
+              <p className="text-gray-800 mb-3">
                 {shouldTruncate && !isExpanded ? (
                   <>
                     {post.text.slice(0, 300)}...
-                    <button
+                    <span
                       onClick={() => toggleReadMore(post.id)}
-                      className="text-blue-500 underline text-sm ml-1"
+                      className="text-blue-500 cursor-pointer ml-1 text-sm font-semibold hover:underline"
                     >
                       Read More
-                    </button>
+                    </span>
                   </>
                 ) : (
                   <>
                     {post.text}
                     {shouldTruncate && (
-                      <button
+                      <span
                         onClick={() => toggleReadMore(post.id)}
-                        className="text-blue-500 underline text-sm ml-1"
+                        className="text-blue-500 cursor-pointer ml-1 text-sm font-semibold hover:underline"
                       >
                         Read Less
-                      </button>
+                      </span>
                     )}
                   </>
                 )}
               </p>
+
               <button
                 onClick={() => toggleCommentsVisibility(post.id)}
-                className="text-blue-500 underline mb-2"
+                className="text-blue-500 underline text-sm"
               >
                 {visibleComments[post.id] ? "Hide KindWords" : "Show KindWords"}
               </button>
