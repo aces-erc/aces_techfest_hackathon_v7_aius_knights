@@ -70,7 +70,7 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
     const user = auth.currentUser;
 
     if (!user) {
-      setError("You must be signed in to comment.");
+      setError("You must be signed in to send a Kindword.");
       return;
     }
 
@@ -82,8 +82,8 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
       });
       setText("");
     } catch (error) {
-      console.error("Error adding comment:", error);
-      setError("Failed to add comment. Please try again.");
+      console.error("Error adding kindword:", error);
+      setError("Failed to add kindword. Please try again.");
     }
   };
 
@@ -112,7 +112,7 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
   };
 
   return (
-    <div className="mt-4">
+    <div className="mt-4 to-right">
       <h3 className="font-bold text-lg mb-2">Kindwords</h3>
       <ul className="mb-4">
         {comments.map((comment) => (

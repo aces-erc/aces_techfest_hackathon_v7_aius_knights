@@ -13,3 +13,7 @@ main {
 .show{
   color:red;
 }
+.to-right{
+  padding-left: 20px;
+  padding-right: 30px;
+}

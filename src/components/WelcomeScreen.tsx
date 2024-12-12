@@ -1,23 +1,24 @@
 import React from "react";
 import SignIn from "./SignIn";
-import "../App.css";
-
+import bg from "../images/bg.jpg";
 
 const WelcomeScreen: React.FC = () => (
-  <div className="welcome-screen p-8 max-w-2xl mx-auto">
-    <h1 className="text-4xl font-bold mb-4">Welcome to KindSpace</h1>
-    <p className="mb-4">
-      This is a simple social app that allows people with mental health issues
-      to sign in and share their experiences.
-    </p>
-    <h2 className="text-2xl font-semibold mb-2">Features:</h2>
-    <ul className="list-disc list-inside mb-4">
-      <li>User authentication with Google Sign-In</li>
-      <li>Share your struggle with mental health</li>
-      <li>View a feed of all posts</li>
-      <li>Personal profile page</li>
-    </ul>
-    <SignIn />
+  <div className="flex items-center justify-center h-screen overflow-hidden">
+    {/* Image Section */}
+    <div className="flex-1 flex justify-start items-start">
+      <img src={bg} alt="Photo" className="w-full h-full object-cover" />
+    </div>
+
+    {/* Content Section */}
+    <div className="flex-1 text-center">
+      <div className="mb-12">
+        <h1 className="text-2xl lg:text-4xl font-bold">
+          Welcome To Kind Space
+        </h1>
+        <h3 className="text-lg text-gray-600">Connect With Compassion!</h3>
+      </div>
+      <SignIn />
+    </div>
   </div>
 );
 

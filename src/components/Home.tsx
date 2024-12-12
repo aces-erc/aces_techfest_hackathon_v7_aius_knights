@@ -6,7 +6,6 @@ import Comments from "./Comments";
 interface Post {
   id: string;
   text: string;
-  imageUrl?: string;
   userId: string;
 }
 
@@ -29,10 +28,10 @@ const Home: React.FC = () => {
       })) as Post[];
       setPosts(newPosts);
 
-      // Initialize visibility state for new posts
+      // Initializing visibility state for new posts
       const visibilityState: { [key: string]: boolean } = {};
       newPosts.forEach((post) => {
-        visibilityState[post.id] = false; // Default to hidden
+        visibilityState[post.id] = false;
       });
       setVisibleComments(visibilityState);
     });
@@ -50,12 +49,9 @@ const Home: React.FC = () => {
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4 text-center">Home Feed</h2>
-      <div>
+      <div className="to-right">
         {posts.map((post) => (
-          <div key={post.id} className="mb-6">
-            {post.imageUrl && (
-              <img src={post.imageUrl} alt="Post" className="mb-2" />
-            )}
+          <div key={post.id} className="mb-6 pb-4 border-b border-black">
             <p className="mb-2">{post.text}</p>
             <button
               onClick={() => toggleCommentsVisibility(post.id)}

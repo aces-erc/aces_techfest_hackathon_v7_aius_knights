@@ -23,6 +23,9 @@ const Profile: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
+  const [expandedPosts, setExpandedPosts] = useState<{ [id: string]: boolean }>(
+    {}
+  );
 
   useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged((currentUser) => {
@@ -66,40 +69,87 @@ const Profile: React.FC = () => {
     }
   };
 
+  const toggleReadMore = (postId: string) => {
+    setExpandedPosts((prevState) => ({
+      ...prevState,
+      [postId]: !prevState[postId],
+    }));
+  };
+
   if (!user) {
     return (
-      <div>
-        <h2 className="text-2xl font-bold mb-4 text-center">Profile</h2>
-        <p>Please sign in to view your profile.</p>
-        <Link to="/signin">Sign In</Link>
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100">
+        <h2 className="text-3xl font-bold mb-4 text-gray-800">Profile</h2>
+        <p className="text-gray-600 mb-4">Please sign in to view your profile.</p>
+        <Link
+          to="/signin"
+          className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition"
+        >
+          Sign In
+        </Link>
       </div>
     );
   }
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-4 text-center">Your Profile</h2>
-      <button
-        onClick={handleSignOut}
-        className="bg-red-500 text-white px-4 py-2 rounded mb-4"
-      >
-        Sign Out
-      </button>
-      <h2 className="text-xl font-semibold mb-2">Your Posts</h2>
-      <ul>
-        {posts.map((post) => (
-          <li key={post.id} className="mb-4">
-            {post.imageUrl}
-            <p className="text-black-800">{post.text}</p>
-            <button
-              onClick={() => handleDelete(post.id)}
-              className="text-red-500"
-            >
-              Delete Post
-            </button>
-          </li>
-        ))}
-      </ul>
+    <div className="min-h-screen bg-gray-100 p-6">
+      <div className="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">Your Profile</h2>
+          <button
+            onClick={handleSignOut}
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
+          >
+            Sign Out
+          </button>
+        </div>
+        <h3 className="text-xl font-semibold text-gray-700 mb-4">Your Posts</h3>
+        <ul>
+          {posts.map((post) => {
+            const isExpanded = expandedPosts[post.id];
+            const shouldTruncate = post.text.length > 200;
+
+            return (
+              <li
+                key={post.id}
+                className="mb-6 border rounded-lg p-4 bg-gray-50 shadow-sm hover:shadow-md transition"
+              >
+                {post.imageUrl && (
+                  <img
+                    src={post.imageUrl}
+                    alt="Post"
+                    className="w-full h-48 object-cover rounded-md mb-4"
+                  />
+                )}
+                <p className="text-gray-800 text-base mb-4">
+                  {shouldTruncate && !isExpanded
+                    ? `${post.text.slice(0, 300)}...`
+                    : post.text}
+                </p>
+                {shouldTruncate && (
+                  <button
+                    onClick={() => toggleReadMore(post.id)}
+                    className="text-blue-500 underline text-sm block mb-1"
+                  >
+                    {isExpanded ? "Read Less" : "Read More"}
+                  </button>
+                )}
+                <button
+                  onClick={() => handleDelete(post.id)}
+                  className="bg-red-500 text-white px-4 py-2 rounded mt-2 hover:bg-red-600 transition"
+                >
+                  Delete Post
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+        {posts.length === 0 && (
+          <p className="text-gray-600 text-center mt-4">
+            You haven't created any posts yet.
+          </p>
+        )}
+      </div>
     </div>
   );
 };
